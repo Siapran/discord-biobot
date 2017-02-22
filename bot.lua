@@ -254,7 +254,7 @@ end
 
 local function bio( message )
 	print(message.author, message)
-	local arg = string.match(message.content, "!bio (.+)%s*")
+	local arg = string.match(message.content, "!bio%s+(.+)%s*")
 	if arg then
 		local found = false
 		if not message.channel.guild then
