@@ -11,7 +11,7 @@ local function getUserMentionName( user )
 	return "@" .. user.name .. "#" .. user.discriminator
 end
 
--- thanks @Sinister Rectus#2219 from the discord api channel for this
+-- thanks SinisterRectus for this wonder
 local function fuzzySearch(guild, arg)
     local member = guild:getMember('id', arg)
     if member then return member end
