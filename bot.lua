@@ -82,7 +82,7 @@ local function hasUserPermissionForChannel( user, chan, perm )
 		end
 		for role in member.roles do
 			currentPerm = role.permissions
-			if currentPerm.allowedPermissions:has(perm) then 
+			if currentPerm:has(perm) then 
 				-- log("user role grant")
 				return true 
 			end
