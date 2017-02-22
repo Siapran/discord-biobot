@@ -226,34 +226,58 @@ client:on("messageDeleteUncached", function( channel, messageId )
 end)
 
 local function _bio( message, chan, arg )
-	if not chan.guild then print("Not in guild.") return end
+	if not chan.guild then print("Not in guild.") return false end
 
-	local member = fuzzySearch(chan.guild, arg)
-	if not member then print("No such member.") return end
+	local member = nil
+	for mention in message.mentionedUsers do
+		member = chan.guild:getMember("id", mention.id)
+	end
+	member = member or fuzzySearch(chan.guild, arg)
+	if not member then print("No such member.") return false end
 
 	local canRead = hasUserPermissionForChannel(message.author, chan, "readMessages")
-	if not canRead then print("Unauthorized.") return end
+	if not canRead then print("Unauthorized.") return false end
 
 	local res = findPostByMember(chan, member)
-	if not res then print("No bio found.") return end
+	if not res then print("No bio found.") return false end
 
-	local answer = "Found bio for user " .. member.user.mentionString
+	local answer = "Bio for user " .. member.user.mentionString
 	if not message.channel.guild then
 		answer = answer .. " on server `" .. chan.guild.name .. "`"
 	end
+	answer = answer .. ":"
 	message.channel:sendMessage(answer)
 	message.channel:sendMessage(res)
 	print("bio delivered")
-
+	return true
 end
 
 local function bio( message )
 	print(message.author, message)
 	local arg = string.match(message.content, "!bio (.+)%s*")
 	if arg then
-		for chan in client:getChannels("name", "bio") do
-			_bio(message, chan, arg)
+		local found = false
+		if not message.channel.guild then
+			for chan in client:getChannels("name", "bio") do
+				found = found or _bio(message, chan, arg)
+			end
+		else
+			local chan = message.channel.guild:getChannel("name", "bio")
+			found = found or _bio(message, chan, arg)
 		end
+		if not found then
+			message.channel:sendMessage("No bio found for `" .. arg .. "`.")
+		end
+	else
+		local fuzzyName = "\"" .. message.author.name:sub(1, 4):lower() .. "\""
+		if message.member and message.member.nickname then
+			fuzzyName = fuzzyName .. " or \"" .. message.member.nickname:sub(1, 4):lower() .. "\""
+		end
+		message.channel:sendMessage("Usage:"
+			.. "\n\n\t`!bio target`"
+			.. "\n\nWhere `target` is either:"
+			.. "\n\tA mention (e.g. " .. message.author.mentionString .. ")"
+			.. "\n\tThe first few letters of the target's nickname (e.g. " .. fuzzyName .. ")")
 	end
 end
 
@@ -274,7 +298,7 @@ client:on("messageCreate", function(message)
 		if message.content == "!ping" then
 			message.channel:sendMessage("pong")
 		end
-		if message.content:startswith("!bio ") then
+		if message.content:startswith("!bio") then
 			bio(message)
 		end
 	end
