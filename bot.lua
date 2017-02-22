@@ -151,7 +151,12 @@ local function getBio( chan )
 			local res = self.authors[user.id]
 			if res then return res end
 
-			res = self.messages:get("user", user)
+			local res = nil
+			for message in self.messages:getAll("user", user) do
+				if not (sameAuthor and sameAuthor.createdAt < message.createdAt) then
+					res = message
+				end
+			end
 			if res then
 				self.authors[user.id] = res
 				return res
