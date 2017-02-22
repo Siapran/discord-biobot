@@ -159,7 +159,8 @@ local function getBio( chan )
 			if res then return res end
 
 			local res = nil
-			for message in self.messages:getAll("user", user) do
+			for message in self.messages:getAll("author", user) do
+				log("", message)
 				if not (sameAuthor and sameAuthor.createdAt > message.createdAt) then
 					res = message
 				end
@@ -174,13 +175,18 @@ local function getBio( chan )
 				count = self:fetchHistory()
 				res = self.authors[user.id]
 			until res ~= nil or count == 0
+			if not res then self.authors[user.id] = nil end
 			return res
 		end
 
 		function bio:debug( )
 			log("debugging:")
+			log("", self.oldestMessage)
 			for k,v in pairs(self.authors) do
 				log("",k,v)
+			end
+			for message in bio.messages:getAll() do
+				log("", message)
 			end
 		end
 
@@ -314,6 +320,13 @@ client:on("messageCreate", function(message)
 		end
 		if message.content:startswith("!bio") then
 			bio(message)
+		end
+		if message.author.id == "66146275568914432" and message.content == "!debug" then
+			local biochan = message.guild and message.guild:getChannel("name", "bio")
+			local bio = biochan and getBio(biochan)
+			if bio then
+				bio:debug()
+			end
 		end
 	end
 end)
