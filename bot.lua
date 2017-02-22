@@ -258,7 +258,7 @@ local function _bio( message, chan, arg )
 end
 
 local function bio( message )
-	print(message)
+	print(message.author, message)
 	local arg = string.match(message.content, "!bio (.+)%s*")
 	if arg then
 		for chan in client:getChannels("name", "bio") do
@@ -270,7 +270,7 @@ end
 
 
 client:on("ready", function()
-	print("Logged in as ".. client.user.username)
+	print("Logged in as " .. client.user.username)
 end)
 
 client:on("messageCreate", function(message)
