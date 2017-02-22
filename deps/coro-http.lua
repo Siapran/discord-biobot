@@ -1,5 +1,5 @@
 --[[lit-meta
-  name = "creationix/coro-http"
+  name = "SinisterRectus/coro-http"
   version = "2.1.1"
   dependencies = {
     "creationix/coro-net@2.1.0",

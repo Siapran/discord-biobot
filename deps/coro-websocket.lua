@@ -1,5 +1,5 @@
 --[[lit-meta
-  name = "creationix/coro-websocket"
+  name = "SinisterRectus/coro-websocket"
   version = "1.0.0-1"
   dependencies = {
     "luvit/http-codec@2.0.0",
@@ -95,7 +95,6 @@ local function wrapIo(rawRead, rawWrite, options)
             payload = message.payload
           }
         end
-		-- return message -- addition
       end
     end
   end
