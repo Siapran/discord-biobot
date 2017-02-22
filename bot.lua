@@ -3,6 +3,10 @@ local client = discordia.Client()
 
 local levenshtein = string.levenshtein
 
+local function log( ... )
+	print(os.date("[%x %X]"), ...)
+end
+
 -- thanks SinisterRectus for this wonder
 local function fuzzySearch(guild, arg)
 	local member = guild:getMember('id', arg)
@@ -41,45 +45,45 @@ local function hasUserPermissionForChannel( user, chan, perm )
 		local member = user:getMembership(chan.guild)
 		if not member then return false end
 		if member == chan.guild.owner then 
-			-- print("owner")
+			-- log("owner")
 			return true 
 		end
 		local currentPerm = chan:getPermissionOverwriteFor(member)
 		if currentPerm.allowedPermissions:has(perm) then 
-			-- print("chan user override grant")
+			-- log("chan user override grant")
 			return true 
 		end
 		if currentPerm.deniedPermissions:has(perm) then 
-			-- print("chan user override deny")
+			-- log("chan user override deny")
 			return false 
 		end
 		for role in member.roles do
 			currentPerm = chan:getPermissionOverwriteFor(role)
 			if currentPerm.allowedPermissions:has(perm) then 
-				-- print("chan role override grant")
+				-- log("chan role override grant")
 				return true 
 			end
 		end
 		for role in member.roles do
 			currentPerm = chan:getPermissionOverwriteFor(role)
 			if currentPerm.deniedPermissions:has(perm) then 
-				-- print("chan role override deny")
+				-- log("chan role override deny")
 				return false 
 			end
 		end
 		currentPerm = chan:getPermissionOverwriteFor(chan.guild.defaultRole)
 		if currentPerm.allowedPermissions:has(perm) then 
-			-- print("chan everyone override grant")
+			-- log("chan everyone override grant")
 			return true 
 		end
 		if currentPerm.deniedPermissions:has(perm) then 
-			-- print("chan everyone override deny")
+			-- log("chan everyone override deny")
 			return false 
 		end
 		for role in member.roles do
 			currentPerm = role.permissions
 			if currentPerm.allowedPermissions:has(perm) then 
-				-- print("user role grant")
+				-- log("user role grant")
 				return true 
 			end
 		end
@@ -108,8 +112,11 @@ local function getBio( chan )
 		end
 
 		function bio:addMessage( message )
+			-- log("Adding", message)
 			local sameAuthor = self.authors[message.author.id]
-			if not (sameAuthor and sameAuthor.createdAt < message.createdAt) then
+			-- if sameAuthor then log("Existing bio found:", sameAuthor) end
+			if not (sameAuthor and sameAuthor.createdAt > message.createdAt) then
+				-- log("Replacing with newer bio.")
 				self.authors[message.author.id] = message
 			end
 			if not (self.oldestMessage and self.oldestMessage.createdAt < message.createdAt) then
@@ -153,7 +160,7 @@ local function getBio( chan )
 
 			local res = nil
 			for message in self.messages:getAll("user", user) do
-				if not (sameAuthor and sameAuthor.createdAt < message.createdAt) then
+				if not (sameAuthor and sameAuthor.createdAt > message.createdAt) then
 					res = message
 				end
 			end
@@ -171,9 +178,9 @@ local function getBio( chan )
 		end
 
 		function bio:debug( )
-			print("debugging:")
+			log("debugging:")
 			for k,v in pairs(self.authors) do
-				print("",k,v)
+				log("",k,v)
 			end
 		end
 
@@ -231,43 +238,43 @@ client:on("messageDeleteUncached", function( channel, messageId )
 end)
 
 local function _bio( message, chan, arg )
-	if not chan.guild then print("Not in guild.") return false end
+	if not chan.guild then log("Not in guild.") return false end
 
 	local member = nil
 	for mention in message.mentionedUsers do
 		member = chan.guild:getMember("id", mention.id)
 	end
 	member = member or fuzzySearch(chan.guild, arg)
-	if not member then print("No such member.") return false end
+	if not member then log(chan.guild, "No such member.") return false end
 
 	local canRead = hasUserPermissionForChannel(message.author, chan, "readMessages")
-	if not canRead then print("Unauthorized.") return false end
+	if not canRead then log(chan.guild, "Unauthorized.") return false end
 
 	local res = findPostByMember(chan, member)
-	if not res then print("No bio found.") return false end
+	if not res then log(chan.guild, "No bio found.") return false end
+	log(chan.guild, "Bio found.")
 
 	local answer = "Bio for user " .. member.user.mentionString
-	if not message.channel.guild then
+	if not message.guild then
 		answer = answer .. " on server \"" .. chan.guild.name .. "\""
 	end
 	answer = answer .. ":"
 	message.channel:sendMessage(answer)
 	message.channel:sendMessage(res)
-	print("bio delivered")
+	log("bio delivered")
 	return true
 end
 
 local function bio( message )
-	print(message.author, message)
 	local arg = string.match(message.content, "!bio%s+(.+)%s*")
 	if arg then
 		local found = false
-		if not message.channel.guild then
+		if not message.guild then
 			for chan in client:getChannels("name", "bio") do
 				found = found or _bio(message, chan, arg)
 			end
 		else
-			local chan = message.channel.guild:getChannel("name", "bio")
+			local chan = message.guild:getChannel("name", "bio")
 			found = found or _bio(message, chan, arg)
 		end
 		if not found then
@@ -289,7 +296,7 @@ end
 
 
 client:on("ready", function()
-	print("Logged in as " .. client.user.username)
+	log("Logged in as " .. client.user.username)
 end)
 
 client:on("messageCreate", function(message)
@@ -297,9 +304,11 @@ client:on("messageCreate", function(message)
 	if message.channel.name == "bio" then
 		local bio = getBio(message.channel)
 		bio:addMessage(message)
+		-- bio:debug()
 		return
 	end
 	if message.content:startswith("!") then
+		log(message.author, message, message.channel, message.guild)
 		if message.content == "!ping" then
 			message.channel:sendMessage("pong")
 		end
@@ -310,9 +319,9 @@ client:on("messageCreate", function(message)
 end)
 
 if args[2] then
-	print("Starting bot with the following token:", args[2])
+	log("Starting bot with the following token:", args[2])
 else
-	print("Please provide a bot token via commandline arguments.")
+	log("Please provide a bot token via commandline arguments.")
 	return
 end
 
