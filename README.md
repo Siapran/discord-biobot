@@ -1,2 +1,2 @@
 # discord-biobot
-A discord bot for navigation user biographies
+A discord bot for navigating user biographies
