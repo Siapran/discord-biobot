@@ -3,45 +3,37 @@ local client = discordia.Client()
 
 local levenshtein = string.levenshtein
 
-function string.starts(String,Start)
-   return string.sub(String, 1, string.len(Start)) == Start
-end
-
-local function getUserMentionName( user )
-	return "@" .. user.name .. "#" .. user.discriminator
-end
-
 -- thanks SinisterRectus for this wonder
 local function fuzzySearch(guild, arg)
-    local member = guild:getMember('id', arg)
-    if member then return member end
+	local member = guild:getMember('id', arg)
+	if member then return member end
 
-    local bestMember
-    local bestDistance = math.huge
-    local lowered = arg:lower()
+	local bestMember
+	local bestDistance = math.huge
+	local lowered = arg:lower()
 
-    for m in guild.members do
-        if m.nickname and m.nickname:lower():startswith(lowered, true) then
-            local d = levenshtein(m.nickname, arg)
-            if d == 0 then
-                return m
-            elseif d < bestDistance then
-                bestMember = m
-                bestDistance = d
-            end
-        end
-        if m.username and m.username:lower():startswith(lowered, true) then
-            local d = levenshtein(m.username, arg)
-            if d == 0 then
-                return m
-            elseif d < bestDistance then
-                bestMember = m
-                bestDistance = d
-            end
-        end
-    end
+	for m in guild.members do
+		if m.nickname and m.nickname:lower():startswith(lowered, true) then
+			local d = levenshtein(m.nickname, arg)
+			if d == 0 then
+				return m
+			elseif d < bestDistance then
+				bestMember = m
+				bestDistance = d
+			end
+		end
+		if m.username and m.username:lower():startswith(lowered, true) then
+			local d = levenshtein(m.username, arg)
+			if d == 0 then
+				return m
+			elseif d < bestDistance then
+				bestMember = m
+				bestDistance = d
+			end
+		end
+	end
 
-    return bestMember
+	return bestMember
 end
 
 local function hasUserPermissionForChannel( user, chan, perm )
@@ -278,11 +270,11 @@ client:on("messageCreate", function(message)
 		bio:addMessage(message)
 		return
 	end
-	if string.starts(message.content, "!") then
+	if message.content:startswith("!") then
 		if message.content == "!ping" then
 			message.channel:sendMessage("pong")
 		end
-		if string.starts(message.content, "!bio ") then
+		if message.content:startswith("!bio ") then
 			bio(message)
 		end
 	end
