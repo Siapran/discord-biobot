@@ -11,10 +11,6 @@ local function getUserMentionName( user )
 	return "@" .. user.name .. "#" .. user.discriminator
 end
 
-local function notify(msg)
-	print(msg)
-end
-
 -- thanks @Sinister Rectus#2219 from the discord api channel for this
 local function fuzzySearch(guild, arg)
     local member = guild:getMember('id', arg)
@@ -124,7 +120,6 @@ local function getBio( chan )
 			if not (sameAuthor and sameAuthor.createdAt < message.createdAt) then
 				self.authors[message.author.id] = message
 			end
-			print(self.oldestMessage and self.oldestMessage.createdAt, message.createdAt)
 			if not (self.oldestMessage and self.oldestMessage.createdAt < message.createdAt) then
 				self.oldestMessage = message
 			end
@@ -161,23 +156,19 @@ local function getBio( chan )
 		end
 
 		function bio:fetchUserBio( user )
-			print("#1")
 			local res = self.authors[user.id]
 			if res then return res end
 
-			print("#2")
 			res = self.messages:get("user", user)
 			if res then
 				self.authors[user.id] = res
 				return res
 			end
 
-			print("#3")
 			local count
 			repeat
 				count = self:fetchHistory()
 				res = self.authors[user.id]
-				print("#4")
 			until res ~= nil or count == 0
 			return res
 		end
@@ -195,9 +186,8 @@ local function getBio( chan )
 end
 
 local function findPostByMember( chan, member )
-	if not hasUserPermissionForChannel(member.user, chan, "readMessages") then notify("debug") return end
+	if not hasUserPermissionForChannel(member.user, chan, "readMessages") then return end
 	local bio = getBio(chan)
-	bio:debug()
 	return bio:fetchUserBio(member.user)
 end
 
@@ -246,16 +236,16 @@ client:on("messageDeleteUncached", function( channel, messageId )
 end)
 
 local function _bio( message, chan, arg )
-	if not chan.guild then notify("Not in guild.") return end
+	if not chan.guild then print("Not in guild.") return end
 
 	local member = fuzzySearch(chan.guild, arg)
-	if not member then notify("No such member.") return end
+	if not member then print("No such member.") return end
 
 	local canRead = hasUserPermissionForChannel(message.author, chan, "readMessages")
-	if not canRead then notify("Unauthorized.") return end
+	if not canRead then print("Unauthorized.") return end
 
 	local res = findPostByMember(chan, member)
-	if not res then notify("No bio found.") return end
+	if not res then print("No bio found.") return end
 
 	local answer = "Found bio for user " .. member.user.mentionString
 	if not message.channel.guild then
