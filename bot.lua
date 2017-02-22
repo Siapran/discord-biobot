@@ -243,7 +243,7 @@ local function _bio( message, chan, arg )
 
 	local answer = "Bio for user " .. member.user.mentionString
 	if not message.channel.guild then
-		answer = answer .. " on server `" .. chan.guild.name .. "`"
+		answer = answer .. " on server \"" .. chan.guild.name .. "\""
 	end
 	answer = answer .. ":"
 	message.channel:sendMessage(answer)
@@ -266,7 +266,7 @@ local function bio( message )
 			found = found or _bio(message, chan, arg)
 		end
 		if not found then
-			message.channel:sendMessage("No bio found for `" .. arg .. "`.")
+			message.channel:sendMessage("No bio found for \"" .. arg .. "\".")
 		end
 	else
 		local fuzzyName = "\"" .. message.author.name:sub(1, 4):lower() .. "\""
