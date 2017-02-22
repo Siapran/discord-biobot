@@ -214,7 +214,6 @@ end)
 
 client:on("messageUpdateUncached", function( channel, messageId )
 	if channel.name == "bio" then
-		print("messageUpdateUncached")
 		local bio = getBio(channel)
 		local cached = bio:getMessageById(messageId)
 		if cached then
@@ -226,7 +225,6 @@ end)
 
 client:on("messageDeleteUncached", function( channel, messageId )
 	if channel.name == "bio" then
-		print("messageDeleteUncached")
 		local bio = getBio(channel)
 		local cached = bio:getMessageById(messageId)
 		if cached then
