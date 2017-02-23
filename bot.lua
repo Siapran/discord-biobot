@@ -7,6 +7,14 @@ local function log( ... )
 	print(os.date("[%x %X]"), ...)
 end
 
+local function embedFormat( title, description )
+	return { embed = {
+		title = title,
+		description = description,
+		color = discordia.Color(96, 64, 192).value,
+	}}
+end
+
 -- thanks SinisterRectus for this wonder
 local function fuzzySearch(guild, arg)
 	local member = guild:getMember('id', arg)
@@ -260,13 +268,21 @@ local function _bio( message, chan, arg )
 	if not res then log(chan.guild, "No bio found.") return false end
 	log(chan.guild, "Bio found.")
 
-	local answer = "Bio for user " .. member.user.name
-	if not message.guild then
-		answer = answer .. " on server " .. chan.guild.name
+	local answer = embedFormat(nil, res.content)
+	answer.embed.author = {
+		name = member.name,
+		icon_url = member.avatarUrl,
+	}
+	if not message.channel.guild then
+		answer.embed.footer = {
+			text = "On " .. chan.guild.name,
+			icon_url = chan.guild.iconUrl,
+		}
 	end
-	answer = answer .. ":"
+	answer.embed.timestamp = os.date('!%Y-%m-%dT%H:%M:%S', res.createdAt)
+
+
 	message.channel:sendMessage(answer)
-	message.channel:sendMessage(res)
 	log("bio delivered")
 	return true
 end
@@ -284,18 +300,20 @@ local function bio( message )
 			found = found or _bio(message, chan, arg)
 		end
 		if not found then
-			message.channel:sendMessage("No bio found for \"" .. arg .. "\".")
+			message.channel:sendMessage(embedFormat(nil, "No bio found for \"" .. arg .. "\"."))
 		end
 	else
 		local fuzzyName = "\"" .. message.author.name:sub(1, 4):lower() .. "\""
 		if message.member and message.member.nickname then
 			fuzzyName = fuzzyName .. " or \"" .. message.member.nickname:sub(1, 4):lower() .. "\""
 		end
-		message.channel:sendMessage("Usage:"
-			.. "\n\n\t`!bio target`"
-			.. "\n\nWhere `target` is either:"
-			.. "\n\tA mention (e.g. " .. message.author.mentionString .. ")"
-			.. "\n\tThe first few letters of the target's nickname (e.g. " .. fuzzyName .. ")")
+		message.channel:sendMessage(embedFormat(
+			"Usage:",
+			"\t`!bio target`"
+				.. "\n\nWhere `target` is either:"
+				.. "\n\tA mention (e.g. " .. message.author.mentionString .. ")"
+				.. "\n\tThe first few letters of the target's nickname (e.g. " .. fuzzyName .. ")"
+		))
 	end
 end
 
@@ -320,6 +338,14 @@ client:on("messageCreate", function(message)
 		end
 		if message.content:startswith("!bio") then
 			bio(message)
+		end
+		if message.content == "!info" then
+			message.channel:sendMessage(embedFormat(
+				"Biobot",
+				"A simple bot for fetching user bios from #bio channels.\n" ..
+					"https://github.com/Siapran/discord-biobot\n" ..
+					"\nType `!bio` for help."
+			))
 		end
 		if message.author.id == "66146275568914432" and message.content == "!debug" then
 			local biochan = message.guild and message.guild:getChannel("name", "bio")
