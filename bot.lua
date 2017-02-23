@@ -260,9 +260,9 @@ local function _bio( message, chan, arg )
 	if not res then log(chan.guild, "No bio found.") return false end
 	log(chan.guild, "Bio found.")
 
-	local answer = "Bio for user " .. member.user.mentionString
+	local answer = "Bio for user " .. member.user.name
 	if not message.guild then
-		answer = answer .. " on server \"" .. chan.guild.name .. "\""
+		answer = answer .. " on server " .. chan.guild.name
 	end
 	answer = answer .. ":"
 	message.channel:sendMessage(answer)
