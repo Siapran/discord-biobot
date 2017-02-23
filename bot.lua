@@ -292,7 +292,7 @@ local function bio( message )
 		local found = false
 		if not message.guild then
 			for chan in client:getChannels("name", "bio") do
-				found = found or _bio(message, chan, arg)
+				found = _bio(message, chan, arg) or found
 			end
 		else
 			local chan = message.guild:getChannel("name", "bio")
