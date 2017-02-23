@@ -168,7 +168,6 @@ local function getBio( chan )
 
 			local res = nil
 			for message in self.messages:getAll("author", user) do
-				log("", message)
 				if not (sameAuthor and sameAuthor.createdAt > message.createdAt) then
 					res = message
 				end
