@@ -11,11 +11,9 @@ A discord bot for navigating user biographies
 
 ## Usage
 
-Users can interact with the bot from any channel.
-
-The bot fetches the latest available message from the desired target in the #bio channels the user has access to.
-
-Deleting and updating messages will preserve this guarantee.
+* Users can interact with the bot from any channel.
+* The bot fetches the latest available message from the desired target in the #bio channels the user has access to.
+* Deleting and updating messages will preserve this guarantee.
 
 ## Screenshots
 
