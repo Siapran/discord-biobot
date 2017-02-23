@@ -44,47 +44,47 @@ local function hasUserPermissionForChannel( user, chan, perm )
 	if chan.guild then
 		local member = user:getMembership(chan.guild)
 		if not member then return false end
-		if member == chan.guild.owner then 
+		if member == chan.guild.owner then
 			-- log("owner")
-			return true 
+			return true
 		end
 		local currentPerm = chan:getPermissionOverwriteFor(member)
-		if currentPerm.allowedPermissions:has(perm) then 
+		if currentPerm.allowedPermissions:has(perm) then
 			-- log("chan user override grant")
-			return true 
+			return true
 		end
-		if currentPerm.deniedPermissions:has(perm) then 
+		if currentPerm.deniedPermissions:has(perm) then
 			-- log("chan user override deny")
-			return false 
+			return false
 		end
 		for role in member.roles do
 			currentPerm = chan:getPermissionOverwriteFor(role)
-			if currentPerm.allowedPermissions:has(perm) then 
+			if currentPerm.allowedPermissions:has(perm) then
 				-- log("chan role override grant")
-				return true 
+				return true
 			end
 		end
 		for role in member.roles do
 			currentPerm = chan:getPermissionOverwriteFor(role)
-			if currentPerm.deniedPermissions:has(perm) then 
+			if currentPerm.deniedPermissions:has(perm) then
 				-- log("chan role override deny")
-				return false 
+				return false
 			end
 		end
 		currentPerm = chan:getPermissionOverwriteFor(chan.guild.defaultRole)
-		if currentPerm.allowedPermissions:has(perm) then 
+		if currentPerm.allowedPermissions:has(perm) then
 			-- log("chan everyone override grant")
-			return true 
+			return true
 		end
-		if currentPerm.deniedPermissions:has(perm) then 
+		if currentPerm.deniedPermissions:has(perm) then
 			-- log("chan everyone override deny")
-			return false 
+			return false
 		end
 		for role in member.roles do
 			currentPerm = role.permissions
-			if currentPerm:has(perm) then 
+			if currentPerm:has(perm) then
 				-- log("user role grant")
-				return true 
+				return true
 			end
 		end
 	end
