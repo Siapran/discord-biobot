@@ -320,6 +320,7 @@ end
 
 client:on("ready", function()
 	log("Logged in as " .. client.user.username)
+	client:setGameName("!info")
 end)
 
 client:on("messageCreate", function(message)
