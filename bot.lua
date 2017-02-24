@@ -8,9 +8,8 @@ local function log( ... )
 	print(os.date("[%x %X]"), ...)
 end
 
-local function embedFormat( title, description )
+local function embedFormat( description )
 	return { embed = {
-		title = title,
 		description = description,
 		color = discordia.Color(96, 64, 192).value,
 	}}
@@ -268,7 +267,7 @@ local function _bio( message, chan, arg )
 	if not res then log(chan.guild, "No bio found.") return false, member end
 	log(chan.guild, "Bio found.")
 
-	local answer = embedFormat(nil, res.content)
+	local answer = embedFormat(res.content)
 	answer.embed.author = {
 		name = member.name,
 		icon_url = member.avatarUrl,
@@ -318,20 +317,21 @@ local function bio( message )
 				matched = " (matched: " .. table.concat(matchedMembers, ", ") .. ")"
 			end
 
-			message.channel:sendMessage(embedFormat(nil, "No bio found for \"" .. arg .. "\"" .. matched .. "."))
+			message.channel:sendMessage(embedFormat("No bio found for \"" .. arg .. "\"" .. matched .. "."))
 		end
 	else
 		local fuzzyName = "\"" .. message.author.name:sub(1, 4):lower() .. "\""
 		if message.member and message.member.nickname then
 			fuzzyName = fuzzyName .. " or \"" .. message.member.nickname:sub(1, 4):lower() .. "\""
 		end
-		message.channel:sendMessage(embedFormat(
-			"Usage",
+		local answer = embedFormat(
 			"\t`!bio target`"
 				.. "\n\nWhere `target` is either:"
 				.. "\n\tA mention (e.g. " .. message.author.mentionString .. ")"
 				.. "\n\tThe first few letters of the target's nickname (e.g. " .. fuzzyName .. ")"
-		))
+		)
+		answer.embed.title = "Usage"
+		message.channel:sendMessage(answer)
 	end
 end
 
@@ -363,11 +363,13 @@ client:on("messageCreate", function(message)
 		end
 		if message.content == "!info" then
 			local answer = embedFormat(
-				nil,
-				"A simple bot for fetching user bios from #bio channels.\n" ..
-					"Visit https://github.com/Siapran/discord-biobot for more info.\n" ..
-					"\nType `!bio` for help."
+				"A simple bot for fetching user bios from #bio channels."
 			)
+			answer.embed.fields = {
+				{ name = "Usage", value = "Type `!bio` for help.", inline = true },
+				{ name = "More info", value = "https://github.com/Siapran/discord-biobot", inline = true },
+				{ name = "Bugs and suggestions", value = "https://github.com/Siapran/discord-biobot/issues", inline = true },
+			}
 			answer.embed.author = {
 				name = client.user.name,
 				icon_url = client.user.avatarUrl,
