@@ -341,12 +341,8 @@ local hostname = io.popen("hostname"):read()
 
 client:on("ready", function()
 	log("Logged in as " .. client.user.username)
-	client:setGameName("type !info for info")
-end)
-
-client:on("resumed", function()
 	bios = {} -- purge cache to enforce consistency
-	log("Cache purged.")
+	client:setGameName("type !info for info")
 end)
 
 client:on("messageCreate", function(message)
