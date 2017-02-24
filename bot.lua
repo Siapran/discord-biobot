@@ -336,6 +336,8 @@ local function bio( message )
 end
 
 local startingTime = os.date('!%Y-%m-%dT%H:%M:%S')
+local version = io.popen("git show-ref --head --abbrev --hash"):read()
+local hostname = io.popen("hostname"):read()
 
 client:on("ready", function()
 	log("Logged in as " .. client.user.username)
@@ -364,8 +366,6 @@ client:on("messageCreate", function(message)
 			bio(message)
 		end
 		if message.content == "!info" then
-			local hostname = io.popen("hostname"):read()
-			local version = io.popen("git show-ref --head --abbrev --hash"):read()
 			local answer = embedFormat(
 				nil,
 				"A simple bot for fetching user bios from #bio channels.\n" ..
