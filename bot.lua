@@ -2,6 +2,7 @@ local discordia = require("discordia")
 local client = discordia.Client()
 
 local levenshtein = string.levenshtein
+local insert = table.insert
 
 local function log( ... )
 	print(os.date("[%x %X]"), ...)
@@ -258,13 +259,13 @@ local function _bio( message, chan, arg )
 		member = chan.guild:getMember("id", mention.id)
 	end
 	member = member or fuzzySearch(chan.guild, arg)
-	if not member then log(chan.guild, "No such member.") return false end
+	if not member then log(chan.guild, "No such member.") return false, member end
 
 	local canRead = hasUserPermissionForChannel(message.author, chan, "readMessages")
-	if not canRead then log(chan.guild, "Unauthorized.") return false end
+	if not canRead then log(chan.guild, "Unauthorized.") return false, member end
 
 	local res = findPostByMember(chan, member)
-	if not res then log(chan.guild, "No bio found.") return false end
+	if not res then log(chan.guild, "No bio found.") return false, member end
 	log(chan.guild, "Bio found.")
 
 	local answer = embedFormat(nil, res.content)
@@ -280,7 +281,6 @@ local function _bio( message, chan, arg )
 	end
 	answer.embed.timestamp = os.date('!%Y-%m-%dT%H:%M:%S', res.createdAt)
 
-
 	message.channel:sendMessage(answer)
 	log("bio delivered")
 	return true
@@ -290,16 +290,35 @@ local function bio( message )
 	local arg = string.match(message.content, "!bio%s+(.+)%s*")
 	if arg then
 		local found = false
+		local channels = {}
+		local matchedSet = {}
+		local matchedMembers = {}
 		if not message.guild then
 			for chan in client:getChannels("name", "bio") do
-				found = _bio(message, chan, arg) or found
+				channels[chan] = true
 			end
 		else
 			local chan = message.guild:getChannel("name", "bio")
-			found = found or _bio(message, chan, arg)
+			channels[chan] = true
 		end
+		for chan,_ in pairs(channels) do
+			local _found, member = _bio(message, chan, arg)
+			found = found or _found
+			if member then
+				matchedSet[member.name] = true
+			end
+		end
+		for name,_ in pairs(matchedSet) do
+			insert(matchedMembers, name)
+		end
+
 		if not found then
-			message.channel:sendMessage(embedFormat(nil, "No bio found for \"" .. arg .. "\"."))
+			local matched = ""
+			if #matchedMembers > 0 then
+				matched = " (matched: " .. table.concat(matchedMembers, ", ") .. ")"
+			end
+
+			message.channel:sendMessage(embedFormat(nil, "No bio found for \"" .. arg .. "\"" .. matched .. "."))
 		end
 	else
 		local fuzzyName = "\"" .. message.author.name:sub(1, 4):lower() .. "\""
@@ -307,7 +326,7 @@ local function bio( message )
 			fuzzyName = fuzzyName .. " or \"" .. message.member.nickname:sub(1, 4):lower() .. "\""
 		end
 		message.channel:sendMessage(embedFormat(
-			"Usage:",
+			"Usage",
 			"\t`!bio target`"
 				.. "\n\nWhere `target` is either:"
 				.. "\n\tA mention (e.g. " .. message.author.mentionString .. ")"
@@ -316,11 +335,14 @@ local function bio( message )
 	end
 end
 
-
+local startingTime = os.date('!%Y-%m-%dT%H:%M:%S')
+local version = io.popen("git show-ref --head --abbrev --hash"):read()
+local hostname = io.popen("hostname"):read()
 
 client:on("ready", function()
 	log("Logged in as " .. client.user.username)
-	client:setGameName("!info")
+	bios = {} -- purge cache to enforce consistency
+	client:setGameName("type !info for info")
 end)
 
 client:on("messageCreate", function(message)
@@ -340,14 +362,28 @@ client:on("messageCreate", function(message)
 			bio(message)
 		end
 		if message.content == "!info" then
-			message.channel:sendMessage(embedFormat(
-				"Biobot",
+			local answer = embedFormat(
+				nil,
 				"A simple bot for fetching user bios from #bio channels.\n" ..
-					"https://github.com/Siapran/discord-biobot\n" ..
+					"Visit https://github.com/Siapran/discord-biobot for more info.\n" ..
 					"\nType `!bio` for help."
-			))
+			)
+			answer.embed.author = {
+				name = client.user.name,
+				icon_url = client.user.avatarUrl,
+			}
+			if hostname or version then
+				local info = {}
+				insert(info, hostname and ("Running on " .. hostname))
+				insert(info, version and ("Version " .. version))
+				answer.embed.footer = {
+					text = table.concat(info, " | "),
+				}
+			end
+			answer.embed.timestamp = startingTime
+			message.channel:sendMessage(answer)
 		end
-		if message.author.id == "66146275568914432" and message.content == "!debug" then
+		if message.author.id == client.owner.id and message.content == "!debug" then
 			local biochan = message.guild and message.guild:getChannel("name", "bio")
 			local bio = biochan and getBio(biochan)
 			if bio then
