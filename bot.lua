@@ -304,7 +304,9 @@ local function bio( message )
 		for chan,_ in pairs(channels) do
 			local _found, member = _bio(message, chan, arg)
 			found = found or _found
-			matchedSet[member.name] = true
+			if member then
+				matchedSet[member.name] = true
+			end
 		end
 		for name,_ in pairs(matchedSet) do
 			insert(matchedMembers, name)
