@@ -339,7 +339,7 @@ local startingTime = os.date('!%Y-%m-%dT%H:%M:%S')
 
 client:on("ready", function()
 	log("Logged in as " .. client.user.username)
-	client:setGameName("!info for info")
+	client:setGameName("type !info for info")
 end)
 
 client:on("resumed", function()
@@ -365,6 +365,7 @@ client:on("messageCreate", function(message)
 		end
 		if message.content == "!info" then
 			local hostname = io.popen("hostname"):read()
+			local version = io.popen("git show-ref --head --abbrev --hash"):read()
 			local answer = embedFormat(
 				nil,
 				"A simple bot for fetching user bios from #bio channels.\n" ..
@@ -375,9 +376,12 @@ client:on("messageCreate", function(message)
 				name = client.user.name,
 				icon_url = client.user.avatarUrl,
 			}
-			if hostname then
+			if hostname or version then
+				local info = {}
+				insert(info, hostname and ("Running on " .. hostname))
+				insert(info, version and ("Version " .. version))
 				answer.embed.footer = {
-					text = "Running on " .. hostname,
+					text = table.concat(info, " | "),
 				}
 			end
 			answer.embed.timestamp = startingTime
