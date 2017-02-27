@@ -354,7 +354,11 @@ client:on("messageCreate", function(message)
 		return
 	end
 	if message.content:startswith("!") then
-		log(message.author, message, message.channel, message.guild)
+		if message.guild then
+			log(message.author, message, message.channel, message.guild)
+		else
+			log("Private message.")
+		end
 		if message.content == "!ping" then
 			message.channel:sendMessage("pong")
 		end
