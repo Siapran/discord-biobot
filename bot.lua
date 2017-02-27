@@ -329,8 +329,10 @@ local function bio( message )
 				.. "\n\nWhere `target` is either:"
 				.. "\n\tA mention (e.g. " .. message.author.mentionString .. ")"
 				.. "\n\tThe first few letters of the target's nickname (e.g. " .. fuzzyName .. ")"
-				.. "\n\nYou can issue commands privately to the bot by DM."
 		)
+		if message.guild then
+			answer.embed.description = answer.embed.description .. "\n\nYou can issue commands privately to the bot by DM."
+		end
 		answer.embed.title = "Usage"
 		message.channel:sendMessage(answer)
 	end
