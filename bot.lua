@@ -325,10 +325,11 @@ local function bio( message )
 			fuzzyName = fuzzyName .. " or \"" .. message.member.nickname:sub(1, 4):lower() .. "\""
 		end
 		local answer = embedFormat(
-			"\t`!bio target`"
+			"\n\t`!bio target`"
 				.. "\n\nWhere `target` is either:"
 				.. "\n\tA mention (e.g. " .. message.author.mentionString .. ")"
 				.. "\n\tThe first few letters of the target's nickname (e.g. " .. fuzzyName .. ")"
+				.. "\n\nYou can issue commands privately to the bot by DM."
 		)
 		answer.embed.title = "Usage"
 		message.channel:sendMessage(answer)
