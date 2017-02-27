@@ -21,4 +21,4 @@ A discord bot for navigating user biographies
 
 ![help](https://cdn.discordapp.com/attachments/283214314444423168/284469603374071838/unknown.png)
 
-![info](https://cdn.discordapp.com/attachments/283214314444423168/284469815844929536/unknown.png)
+![info](https://cdn.discordapp.com/attachments/283214314444423168/285769699621601280/unknown.png)
