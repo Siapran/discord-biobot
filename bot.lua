@@ -4,6 +4,8 @@ local client = discordia.Client()
 local levenshtein = string.levenshtein
 local insert = table.insert
 
+local prefix = "?"
+
 local function log( ... )
 	print(os.date("[%x %X]"), ...)
 end
@@ -286,7 +288,7 @@ local function _bio( message, chan, arg )
 end
 
 local function bio( message )
-	local arg = string.match(message.content, "!bio%s+(.+)%s*")
+	local arg = string.match(message.content, prefix .. "bio%s+(.+)%s*")
 	if arg then
 		local found = false
 		local channels = {}
@@ -325,7 +327,7 @@ local function bio( message )
 			fuzzyName = fuzzyName .. " or \"" .. message.member.nickname:sub(1, 4):lower() .. "\""
 		end
 		local answer = embedFormat(
-			"\n\t`!bio target`"
+			"\n\t`" .. prefix .. "bio target`"
 				.. "\n\nWhere `target` is either:"
 				.. "\n\tA mention (e.g. " .. message.author.mentionString .. ")"
 				.. "\n\tThe first few letters of the target's nickname (e.g. " .. fuzzyName .. ")"
@@ -345,7 +347,7 @@ local hostname = io.popen("hostname"):read()
 client:on("ready", function()
 	log("Logged in as " .. client.user.username)
 	bios = {} -- purge cache to enforce consistency
-	client:setGameName("type !info for info")
+	client:setGameName("type " .. prefix .. "info for info")
 end)
 
 client:on("messageCreate", function(message)
@@ -356,24 +358,24 @@ client:on("messageCreate", function(message)
 		-- bio:debug()
 		return
 	end
-	if message.content:startswith("!") then
+	if message.content:startswith(prefix) then
 		if message.guild then
 			log(message.author, message, message.channel, message.guild)
 		else
 			log("Private message.")
 		end
-		if message.content == "!ping" then
+		if message.content == prefix .. "ping" then
 			message.channel:sendMessage("pong")
 		end
-		if message.content:startswith("!bio") then
+		if message.content:startswith(prefix .. "bio") then
 			bio(message)
 		end
-		if message.content == "!info" then
+		if message.content == prefix .. "info" then
 			local answer = embedFormat(
 				"A simple bot for fetching user bios from #bio channels."
 			)
 			answer.embed.fields = {
-				{ name = "Usage", value = "Type `!bio` for help.", inline = true },
+				{ name = "Usage", value = "Type `" .. prefix .. "bio` for help.", inline = true },
 				{ name = "More info", value = "https://github.com/Siapran/discord-biobot", inline = true },
 				{ name = "Bugs and suggestions", value = "https://github.com/Siapran/discord-biobot/issues", inline = true },
 			}
@@ -392,7 +394,7 @@ client:on("messageCreate", function(message)
 			answer.embed.timestamp = startingTime
 			message.channel:sendMessage(answer)
 		end
-		if message.author.id == client.owner.id and message.content == "!debug" then
+		if message.author.id == client.owner.id and message.content == prefix .. "debug" then
 			local biochan = message.guild and message.guild:getChannel("name", "bio")
 			local bio = biochan and getBio(biochan)
 			if bio then
